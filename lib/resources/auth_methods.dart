@@ -19,12 +19,17 @@ class AuthMethods {
     String res = "Error occured";
 
     try {
-      if(email.isNotEmpty && password.isNotEmpty && username.isNotEmpty && bio.isNotEmpty){
-        UserCredential cred = await _auth.createUserWithEmailAndPassword(email: email, password: password);
-        
-        String photoUrl = await StorageMethods().uploadImgToStorage('profilePics', file, false);
+      if (email.isNotEmpty &&
+          password.isNotEmpty &&
+          username.isNotEmpty &&
+          bio.isNotEmpty) {
+        UserCredential cred = await _auth.createUserWithEmailAndPassword(
+            email: email, password: password);
 
-        // Add user to Database 
+        String photoUrl = await StorageMethods()
+            .uploadImgToStorage('profilePics', file, false);
+
+        // Add user to Database
         await _firestore.collection('users').doc(cred.user!.uid).set({
           'username': username,
           'uid': cred.user!.uid,
@@ -36,12 +41,33 @@ class AuthMethods {
         });
       }
       res = "Success";
-
-    } on FirebaseAuthException catch(err){
+    } on FirebaseAuthException catch (err) {
       res = err.toString();
-    }    
-    catch(err){
-      res =  err.toString();
+    } catch (err) {
+      res = err.toString();
+    }
+
+    return res;
+  }
+
+  Future<String> loginUser({
+    required String email,
+    required String password,
+  }) async {
+    String res = "An error occured!";
+
+    try {
+      if (email.isNotEmpty && password.isNotEmpty) {
+        await _auth.signInWithEmailAndPassword(
+            email: email, password: password);
+        res = "success";
+      } else {
+        res = "Please enter all the fields.";
+      }
+    } on FirebaseAuthException catch (err) {
+      res = err.toString();
+    } catch (err) {
+      res = err.toString();
     }
 
     return res;
