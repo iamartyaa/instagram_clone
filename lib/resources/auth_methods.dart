@@ -1,3 +1,4 @@
+
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -57,7 +58,7 @@ class AuthMethods {
             .doc(cred.user!.uid)
             .set(user.toJson());
       }
-      res = "Success";
+      res = "success";
     } on FirebaseAuthException catch (err) {
       res = err.toString();
     } catch (err) {
