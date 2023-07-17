@@ -19,25 +19,7 @@ class PostCard extends StatefulWidget {
 
 class _PostCardState extends State<PostCard> {
   bool isLikeAnimating = false;
-  int comments = 0;
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    getComments();
-  }
-
-  void getComments() async {
-    QuerySnapshot snap = await FirebaseFirestore.instance
-        .collection('posts')
-        .doc(widget.snap['postId'])
-        .collection('comments')
-        .get();
-
-    comments = snap.docs.length;
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     final User user = Provider.of<UserProvider>(context).getUser;
@@ -253,15 +235,31 @@ class _PostCardState extends State<PostCard> {
                       ),
                     ),
                   ),
-                  child:Container(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Text(
-                      'View all ${comments} comments',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: secondaryColor,
-                      ),
-                    ),
+                  child: StreamBuilder(
+                    stream: FirebaseFirestore.instance
+                        .collection('posts')
+                        .doc(widget.snap['postId'])
+                        .collection('comments')
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: primaryColor,
+                          ),
+                        );
+                      }
+                      return Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          'View all ${snapshot.data!.docs.length} comments',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: secondaryColor,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
                 Container(
