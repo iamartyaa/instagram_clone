@@ -99,7 +99,7 @@ class _AddPostScreenState extends State<AddPostScreen> {
         });
   }
 
-  void clearImage(){
+  void clearImage() {
     setState(() {
       _file = null;
     });
@@ -119,9 +119,20 @@ class _AddPostScreenState extends State<AddPostScreen> {
 
     return _file == null
         ? Center(
-            child: IconButton(
-                onPressed: () => _selectImage(context),
-                icon: Icon(Icons.upload_rounded)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                IconButton(
+                  onPressed: () => _selectImage(context),
+                  icon: Icon(Icons.upload_rounded),
+                ),
+                Text(
+                  'Upload Post',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                )
+              ],
+            ),
           )
         : Scaffold(
             appBar: AppBar(
