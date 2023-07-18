@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:instagram_clone/models/user_model.dart';
 import 'package:instagram_clone/providers/user_provider.dart';
 import 'package:instagram_clone/resources/firestore_methods.dart';
+import 'package:instagram_clone/resources/storage_methods.dart';
 import 'package:instagram_clone/screens/comments_screen.dart';
 import 'package:instagram_clone/utils/colors.dart';
 import 'package:instagram_clone/widgets/like_animation.dart';
@@ -19,7 +20,8 @@ class PostCard extends StatefulWidget {
 
 class _PostCardState extends State<PostCard> {
   bool isLikeAnimating = false;
-  
+  bool _isDeleting = false;
+
   @override
   Widget build(BuildContext context) {
     final User user = Provider.of<UserProvider>(context).getUser;
@@ -61,34 +63,52 @@ class _PostCardState extends State<PostCard> {
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => Dialog(
-                        child: ListView(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
+                if (widget.snap['uid'] == user.uid)
+                  IconButton(
+                    onPressed: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => Dialog(
+                          child: ListView(
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 16,
+                            ),
+                            shrinkWrap: true,
+                            children: [
+                              InkWell(
+                                onTap: () async {
+                                  setState(() {
+                                    _isDeleting = true;
+                                  });
+                                  await FirestoreMethods()
+                                      .deletePost(widget.snap['postId']);
+
+                                  setState(() {
+                                    _isDeleting = false;
+                                  });
+                                  Navigator.of(context).pop();
+                                },
+                                child: _isDeleting
+                                    ? Center(
+                                        child: CircularProgressIndicator(
+                                          color: primaryColor,
+                                        ),
+                                      )
+                                    : Container(
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12, horizontal: 16),
+                                        child: const Text('Delete'),
+                                      ),
+                              )
+                            ],
                           ),
-                          shrinkWrap: true,
-                          children: [
-                            InkWell(
-                              onTap: () {},
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 12, horizontal: 16),
-                                child: const Text('Delete'),
-                              ),
-                            )
-                          ],
                         ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.more_vert_rounded,
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.more_vert_rounded,
+                    ),
                   ),
-                ),
               ],
             ),
           ),

@@ -27,4 +27,15 @@ class StorageMethods {
 
     return downloadURL;
   }
+
+  Future<void> deletePost(String postId) async {
+    try {
+      Reference ref = _storage.ref().child('posts').child(_auth.currentUser!.uid).child(postId);
+
+      await ref.delete();
+
+    } catch (e){
+      print(e.toString());
+    }
+  }
 }
