@@ -35,7 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       var userSnap = await FirebaseFirestore.instance
           .collection('users')
-          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .doc(widget.uid)
           .get();
 
       var postSnap = await FirebaseFirestore.instance
