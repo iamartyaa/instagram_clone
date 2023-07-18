@@ -84,8 +84,7 @@ class FirestoreMethods {
           'commentId': commentId,
           'datePublished': DateTime.now(),
         });
-      }
-      else{
+      } else {
         return "Type the comment";
       }
     } catch (e) {
@@ -95,13 +94,39 @@ class FirestoreMethods {
     return res;
   }
 
-
-  Future<void> deletePost( String postId ) async {
+  Future<void> deletePost(String postId) async {
     String res = "Error occured";
     try {
       await _firestore.collection('posts').doc(postId).delete();
-    } catch (e) {
+    } catch (e) {}
+  }
 
+  Future<void> followUser(
+    String uid,
+    String followId,
+  ) async {
+    try {
+      DocumentSnapshot snap =
+          await _firestore.collection('users').doc(uid).get();
+      List following = (snap.data() as dynamic)!['following'];
+
+      if (following.contains(followId)) {
+        await _firestore.collection('users').doc(followId).update({
+          'followers': FieldValue.arrayRemove([uid]),
+        });
+        await _firestore.collection('users').doc(uid).update({
+          'following': FieldValue.arrayRemove([followId]),
+        });
+      } else {
+        await _firestore.collection('users').doc(followId).update({
+          'followers': FieldValue.arrayUnion([uid]),
+        });
+        await _firestore.collection('users').doc(uid).update({
+          'following': FieldValue.arrayUnion([followId]),
+        });
+      }
+    } catch (e) {
+      print(e.toString());
     }
   }
 }

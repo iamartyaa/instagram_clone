@@ -1,4 +1,3 @@
-
 import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -18,7 +17,6 @@ class AuthMethods {
         await _firestore.collection("users").doc(currentUser.uid).get();
 
     return model.User.fromSnap(snap);
-    
   }
 
   // Sign up Function
@@ -89,5 +87,9 @@ class AuthMethods {
     }
 
     return res;
+  }
+
+  Future<void> signOut() async {
+    await _auth.signOut();
   }
 }

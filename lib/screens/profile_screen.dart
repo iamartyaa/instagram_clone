@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:instagram_clone/resources/auth_methods.dart';
+import 'package:instagram_clone/resources/firestore_methods.dart';
 import 'package:instagram_clone/utils/colors.dart';
 import 'package:instagram_clone/utils/utils.dart';
 import 'package:instagram_clone/widgets/follow_button.dart';
@@ -32,7 +34,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       var userSnap = await FirebaseFirestore.instance
           .collection('users')
-          .doc(widget.uid)
+          .doc(FirebaseAuth.instance.currentUser!.uid)
           .get();
 
       var postSnap = await FirebaseFirestore.instance
@@ -106,9 +108,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       FollowButton(
                                         backgroundColor: mobileBackgroundColor,
                                         borderColor: Colors.grey,
-                                        text: 'Edit Profile',
+                                        text: 'Sign Out',
                                         textColor: primaryColor,
-                                        function: () {},
+                                        function: () async {
+                                          await AuthMethods().signOut();
+                                        },
                                       ),
                                     if (FirebaseAuth
                                                 .instance.currentUser!.uid !=
@@ -119,19 +123,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         borderColor: Colors.grey,
                                         text: 'Unfollow',
                                         textColor: Colors.black,
-                                        function: () {},
-                                      ),
+                                        function: () async {
+                                          await FirestoreMethods().followUser(
+                                              FirebaseAuth
+                                                  .instance.currentUser!.uid,
+                                              widget.uid);
 
-                                      if (FirebaseAuth
+                                          setState(() {
+                                            isFollowing = false;
+                                            followers--;
+                                          });
+                                        },
+                                      ),
+                                    if (FirebaseAuth
                                                 .instance.currentUser!.uid !=
                                             widget.uid &&
                                         !isFollowing)
                                       FollowButton(
                                         backgroundColor: blueColor,
                                         borderColor: Colors.blue,
-                                        text: 'Unfollow',
+                                        text: 'Follow',
                                         textColor: primaryColor,
-                                        function: () {},
+                                        function: () async {
+                                          await FirestoreMethods().followUser(
+                                              FirebaseAuth
+                                                  .instance.currentUser!.uid,
+                                              widget.uid);
+
+                                          setState(() {
+                                            isFollowing = true;
+                                            followers++;
+                                          });
+                                        },
                                       ),
                                   ],
                                 ),
@@ -160,7 +183,49 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                 ),
-                Divider(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                  ),
+                  child: Divider(),
+                ),
+                FutureBuilder(
+                  future: FirebaseFirestore.instance
+                      .collection('posts')
+                      .where('uid', isEqualTo: widget.uid)
+                      .get(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Center(
+                        child: CircularProgressIndicator(
+                          color: primaryColor,
+                        ),
+                      );
+                    }
+                    print('here');
+
+                    return Container(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: GridView.builder(
+                        itemCount: snapshot.data!.docs.length,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 3,
+                            crossAxisSpacing: 5,
+                            mainAxisSpacing: 1.5,
+                            childAspectRatio: 1),
+                        itemBuilder: (context, index) {
+                          DocumentSnapshot snap = snapshot.data!.docs[index];
+                          return Container(
+                            child: Image(
+                              image: NetworkImage(snap['postUrl']),
+                              fit: BoxFit.cover,
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
           );
